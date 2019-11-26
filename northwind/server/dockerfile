@@ -1,0 +1,25 @@
+FROM node:latest
+
+ENV APP_ROOT=/app 
+ENV APP_PORT=3000
+
+# ENV DB_HOST=172.17.0.3
+# ENV DB_PORT=3306
+# ENV DB_USER=root
+# ENV DB_PASSWORD=changeit
+
+WORKDIR ${APP_ROOT}
+
+ADD main.js .
+ADD package.json .
+ADD public public
+ADD config config
+ADD views views
+
+RUN npm install
+
+EXPOSE ${APP_PORT}
+
+HEALTHCHECK --interval=30s --timeout=6s --retries=3 CMD curl -s -f http://localhost:${APP_PORT}/health > /dev/null || exit 1
+
+ENTRYPOINT ["node", "./main.js"]
