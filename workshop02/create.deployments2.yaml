@@ -1,0 +1,93 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: database-deployment
+  namespace: myapp
+  labels:
+    name: database-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: db
+      version: v1
+  template:
+    metadata: 
+      name: db-pod
+      labels:
+        name: db
+        version: v1
+    spec:
+      containers:
+      - name: db-container
+        image: geekwannabe555/nw_db:0.0.1
+        imagePullPolicy: Always
+        ports: 
+        - name: sql
+          containerPort: 3306
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef: 
+              name: mydb-secret
+              key: db_password
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-deployment
+  namespace: myapp
+  labels:
+    name: app-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      name: app
+      version: v1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  template:
+    metadata: 
+      name: app-pod
+      labels:
+        name: app
+        version: v1
+    spec:
+      containers:
+      - name: app-container
+        image: stackupiss/northwind-app:v2
+        imagePullPolicy: Always
+        # livenessProbe:
+        #   httpGet:
+        #       path: /health
+        #       port: 3000
+        #     timeoutSeconds: 5
+        #     failureThreshold: 3
+        #     successThreshold: 1
+        ports: 
+        - name: http
+          containerPort: 3000
+        env:
+        - name: DB_HOST
+          valueFrom:
+            configMapKeyRef: 
+              name: mydb-config
+              key: db_host
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mydb-secret
+              key: db_password
+        - name: DB_USER
+          valueFrom:
+            configMapKeyRef: 
+              name: mydb-config
+              key: db_user
+        - name: INSTANCE_IP_ADDRESS
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
