@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: database-deployment
+  labels:
+    name: database-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: db
+      version: v1
+  template:
+    metadata: 
+      name: db-pod
+      labels:
+        name: db
+        version: v1
+    spec:
+      volumes:
+      - name: mysqldb-volume
+        persistentVolumeClaim:
+          claimName: mysqldb-pvc
+      initContainers:
+      - name: scrub-data-volume
+        image: "k8s.gcr.io/busybox"
+        command: ["/bin/sh", "-c", "test -e /scrub && rm -rf /scrub/..?* /scrub/.[!.]* /scrub/*  && test -z \"$(ls -A /scrub)\" || exit 1"]
+        volumeMounts:
+        - mountPath: /scrub
+          name: mysqldb-volume
+      containers:
+      - name: db-container
+        image: geekwannabe555/nw_db:0.0.1
+        imagePullPolicy: Always
+        ports: 
+        - name: sql
+          containerPort: 3306
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: changeit
+        volumeMounts:
+        - mountPath: /var/lib/mysql
+          name: mysqldb-volume
+      

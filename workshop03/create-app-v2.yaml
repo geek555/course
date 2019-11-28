@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-deployment-v2
+  labels:
+    name: app-deployment-v2
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      name: app
+      version: v2
+  template:
+    metadata: 
+      name: app-pod-v2
+      labels:
+        name: app
+        version: v2
+    spec:
+      containers:
+      - name: app-container-v2
+        image: stackupiss/northwind-app:v2
+        imagePullPolicy: Always
+        ports: 
+        - name: app
+          containerPort: 3000
+        env:
+        - name: DB_HOST
+          value: db-svc
+        - name: DB_PASSWORD
+          value: changeit
+        - name: DB_USER
+          value: root
+        - name: INSTANCE_IP_ADDRESS
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
