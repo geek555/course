@@ -1,0 +1,23 @@
+
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+
+metadata:
+   name: fortune-ingress-vs
+
+spec:
+   hosts:
+   - "fortune.139.59.195.120.nip.io" 
+   gateways:
+   - fortune-ingress
+   http:
+   - match:
+     - uri:
+        exact: /v1
+     route:
+     - destination:
+        host: fortuneapp-svc
+        port: 
+          number: 80
+     rewrite:
+        uri: /

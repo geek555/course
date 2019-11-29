@@ -1,0 +1,57 @@
+
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+
+metadata:
+   name: weather-ingress-vs
+
+spec:
+   hosts:
+   - "weather.139.59.195.120.nip.io" 
+   gateways:
+   - weather-ingress
+   http:
+   - match:
+     - uri:
+        exact: /weather
+     route:
+     - destination:
+        host: weatherapp-svc
+        port: 
+          number: 3000
+     rewrite:
+        uri: /
+
+   - match:
+     - uri:
+        prefix: /health
+     route:
+     - destination:
+        host: weatherapp-svc
+        port: 
+          number: 3000
+     rewrite:
+        uri: /health
+
+   - match:
+     - uri:
+        prefix: /weather/
+     route:
+     - destination:
+        host: weatherapp-svc
+        port: 
+          number: 3000
+     rewrite:
+        uri: /weather/
+   
+   - match:
+     - uri:
+        prefix: /
+     route:
+     - destination:
+        host: weatherapp-svc
+        port: 
+          number: 3000
+     rewrite:
+        uri: /
+      
